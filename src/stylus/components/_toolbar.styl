@@ -1,0 +1,72 @@
+.vd-navbar
+  display flex
+  -webkit-flex-wrap wrap
+  flex-wrap wrap
+  justify-content center
+  align-items: center
+  padding: 1em 1em .5em
+  text-align: center
+  background:  #ff6e40
+  color: #fff
+  elevation(2)
+
+  &__item
+    min-width 33%
+    padding 1em
+
+  &__item--social
+    width 100%
+
+
+  .link--page
+    display: inline-block
+    text-transform uppercase
+    font-weight bold
+    font-size 0.85em
+    transition opacity .3s
+
+    &:before
+      content ''
+      position absolute
+      top 100%
+      left 50%
+      width 30px
+      height 2px
+      margin 5px 0 0 -15px
+      background: $theme.secondary
+      transition transform 0.3s
+      transform scale3d(0, 1, 1)
+    &:hover
+      opacity .75
+      &:before
+        transform scale3d(1, 1, 1)
+
+
+  .link--faded
+    font-size 0.65em
+
+  .link--active
+    &:before
+      transform scale3d(1, 1, 1)
+
+  .link--social
+    opacity .75
+    margin 0 0.75em
+    text-transform capitalize
+    &:hover
+      opacity 1
+
+  .text-hidden
+    display none
+
+
+.link
+  color inherit
+  position relative
+  letter-spacing 1px
+  text-decoration none
+  
+.fa-block
+  display: block !important
+
+

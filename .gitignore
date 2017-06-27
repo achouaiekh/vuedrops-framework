@@ -1,0 +1,7 @@
+node_modules/
+assets/
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/vuedrops-animate.iml
+.idea/workspace.xml
