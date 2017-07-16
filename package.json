@@ -21,6 +21,7 @@
     "url": "git+https://github.com/achouaiekh/vuedrops-framework.git"
   },
   "dependencies": {
+    "mdi": "^1.9.33",
     "vue": "^2.2.1"
   },
   "devDependencies": {

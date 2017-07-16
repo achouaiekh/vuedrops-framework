@@ -5,65 +5,67 @@
     <title>Title</title>
     <link rel="stylesheet" href="dist/themes.css">
     <script src="https://use.fontawesome.com/b0c254e259.js"></script>
-</head>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet"></head>
 <body>
-<nav class="vd-navbar blue">
-    <div class="vd-navbar__brand">
-        <a href="#" class="link">Vuedrops <span>framework</span></a>
-    </div>
 
-    <div class="vd-navbar__content">
-        <div class="vd-navbar__menu">
-            <div class="vd-navbar__item">
-                <a href="#" href="#" class="link--page link">
-                    Home
-                </a>
-            </div>
-            <div class="vd-navbar__item">
-                <a href="#" href="#" href="#" class="link--page link">
-                    sign up
-                </a>
-            </div>
-            <div class="vd-navbar__item">
-                <a href="#" href="#" class="link--page link">
-                    setting
-                </a>
-            </div>
-            <div class="vd-navbar__item">
-                <a href="#" href="#" class="link--page link">
-                    documentation
-                </a>
-            </div>
-            <div class="vd-navbar__item">
-                <a href="#" href="#" class="link--page link">
-                    login
-                </a>
-            </div>
-
-            <div class="vd-navbar__item">
-                <a href="#" href="#" class="link--page link  link--active">
-                    my profile
-                </a>
-            </div>
-
-        </div>
-        <div class="vd-navbar__settings">
-            <input type="text" placeholder="search"
-                   style="padding: .5em; outline: none; border:none;
-                        background-color: rgba(255,255,255,.85); border-radius: 5px; margin: 0.5em; width:100%">
-        </div>
-
-        <div class="vd-navbar__social">
-            <a href="#" class="link link--social"><i class="fa fa-github"></i></a>
-            <a href="#" class="link link--social"><i class="fa fa-facebook"></i></a>
-            <a href="#" class="link link--social"><i class="fa fa-home"></i></a>
-            <a href="#" class="link link--social"><i class="fa fa-facebook"></i></a>
-        </div>
-    </div>
-
-
-</nav>
 <div id="app">
+    <nav class="vd-navbar blue">
+        <div class="vd-navbar__brand">
+            <a href="#" class="link">Vuedrops <span>framework</span></a>
+        </div>
+
+        <div class="vd-navbar__content">
+            <div class="vd-navbar__menu">
+                <div class="vd-navbar__item">
+                    <a href="#" href="#" class="link--page link">
+                        Home
+                    </a>
+                </div>
+                <div class="vd-navbar__item">
+                    <a href="#" href="#" href="#" class="link--page link">
+                        sign up
+                    </a>
+                </div>
+                <div class="vd-navbar__item">
+                    <a href="#" href="#" class="link--page link">
+                        setting
+                    </a>
+                </div>
+                <div class="vd-navbar__item">
+                    <a href="#" href="#" class="link--page link">
+                        documentation
+                    </a>
+                </div>
+                <div class="vd-navbar__item">
+                    <a href="#" href="#" class="link--page link">
+                        login
+                    </a>
+                </div>
+
+                <div class="vd-navbar__item">
+                    <a href="#" href="#" class="link--page link  link--active">
+                        my profile
+                    </a>
+                </div>
+
+            </div>
+            <div class="vd-navbar__settings">
+                <input type="text" placeholder="search"
+                       style="padding: .5em; outline: none; border:none;
+                        background-color: rgba(255,255,255,.85); border-radius: 5px; margin: 0.5em; width:100%">
+            </div>
+
+            <div class="vd-navbar__social">
+                <a href="#" class="link link--social"><vd-icon>github</vd-icon></a>
+                <a href="#" class="link link--social"><vd-icon md>book</vd-icon></i></a>
+                <a href="#" class="link link--social"><i class="mdi mdi-bell"></i></a>
+                <a href="#" class="link link--social"><i class="fa fa-facebook"></i></a>
+            </div>
+        </div>
+
+
+    </nav>
     <carousel :slide-to-show="3"
               pagination-class="ubax"
               :pagination-shown-page="10"
@@ -102,9 +104,13 @@
                 </p>
                 <h2 class="aly heading blue--after blue--text"><a href="#experience" class="link">Experience</a></h2>
                 <ul>
-                    <li>Bilingual customer service representative from July 2016 to June 2017 at 24-7intouch in Winnipeg Canada</li>
-                    <li>Computer lab monitor: from September  2014  to March 2015 at the University of Saint - Boniface Winnipeg</li>
-                    <li>IT tutor:  from October 2014 to April 2015 at the University of Saint - Boniface Winnipeg</li>
+                    <li>Bilingual customer service representative from July 2016 to June 2017 at 24-7intouch in Winnipeg
+                        Canada
+                    </li>
+                    <li>Computer lab monitor: from September 2014 to March 2015 at the University of Saint - Boniface
+                        Winnipeg
+                    </li>
+                    <li>IT tutor: from October 2014 to April 2015 at the University of Saint - Boniface Winnipeg</li>
                 </ul>
 
 
@@ -119,9 +125,11 @@
                 </div>
                 <div class="flex">
                     <div class="blue darken-1" style="padding: 1.2em">
-                        <h5><a href="mailto:amine.chouaiekh@gmail.com" class="link link--page"><i class="fa fa-envelope"></i>
+                        <h5><a href="mailto:amine.chouaiekh@gmail.com" class="link link--page"><i
+                                class="fa fa-envelope"></i>
                             amine.chouaiekh@gmail.com</a></h5>
-                        <h5><a href="tel:514-655-9572" class="link link--page"><i class="fa fa-phone"></i> 514-655-9572</a></h5>
+                        <h5><a href="tel:514-655-9572" class="link link--page"><i class="fa fa-phone"></i> 514-655-9572</a>
+                        </h5>
                         <h5><i class="fa fa-home"></i> Montréal, Quebec, Canada</p></h5>
                     </div>
 
@@ -134,7 +142,16 @@
             </div>
         </div>
     </div>
-    <pagination :length="10" :shown-page="7" navigation class="pagination__dot pagination__dot--hop"></pagination>
+    <pagination
+            :total-pages="10"
+            :shown-pages="7"
+            href="system/<page>"
+            prevent-default
+            chevron
+            class="pagination__simple">
+    </pagination>
+
+    <vd-icon md>face</vd-icon>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.4/vue.js"></script>
 <script src="dist/vuedrops-framework.js"></script>

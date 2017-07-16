@@ -5987,6 +5987,10 @@ template {
 .heading.nadya:before {
   content: "";
 }
+i.vd-icon {
+  font-size: inherit;
+  display: inline-block;
+}
 .chevron__left,
 .chevron__top,
 .chevron__right,
@@ -6071,7 +6075,7 @@ template {
 .pagination__item:focus,
 .pagination__item:hover {
   outline: none;
-  color: #eee;
+  color: #9e9e9e;
 }
 .pagination__item--active {
   color: #2196f3;
@@ -6101,12 +6105,12 @@ template {
 }
 .pagination__simple .pagination__item {
   padding: 0.2em;
-  border: 0.05em solid rgba(0,0,0,0.25);
+  border: 0.05em solid currentcolor;
   min-width: 1.6em;
 }
 .pagination__simple .pagination__item:hover {
-  background-color: #eee;
-  color: inherit;
+  border-color: #9e9e9e;
+  color: #9e9e9e;
 }
 .pagination__simple .pagination__item--active {
   background-color: #2196f3;

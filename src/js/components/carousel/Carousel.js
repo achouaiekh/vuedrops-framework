@@ -89,8 +89,6 @@ export default class {
 
         this.previousSlide = this.currentSlide = s
 
-        console.log('current', s)
-
 
         if (this.fade) {
             this.el.classList.add('fade')
@@ -269,8 +267,6 @@ export default class {
 
     setLeft(position) {
 
-        console.log('this', this)
-
         let prop = this.vertical ? 'top' : 'left'
 
         this.track.style[prop] = position + 'px'
@@ -372,8 +368,6 @@ export default class {
     }
 
     animate(position = this.currentSlide, from) {
-
-        console.log(position)
 
         if (this.animating) return
 

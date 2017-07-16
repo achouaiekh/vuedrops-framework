@@ -1,57 +1,51 @@
-
 <template>
 
-    <nav>
-        <transition-group name="pagination" tag="div" class="pagination">
-            <div
-                    v-if="navigation"
-                    class="pagination__item"
-                    :class="{'pagination__item--disabled': value === 1 && !cycle}"
-                    :key="1"
+    <transition-group name="pagination" tag="nav" class="pagination">
+
+        <div
+                v-if="!noNavigation"
+                :class="[ 'pagination__item', {'pagination__item--disabled': value === 1 && !cycle,'pagination__item--active': !chevron}]"
+                :key="1"
+        >
+            <a :href="link(value-1)"
+               :class="['link', 'pagination__previous', {'chevron__left': chevron}]"
+               @click="previous($event)"
             >
-                <a :href="link(value-1)"
-                   class="link pagination__previous chevron__left"
-                   @click.prevent="previousPage"
-                >
-                    previous
-                </a>
-            </div>
+                {{previousText}}
+            </a>
+        </div>
 
 
-            <div class="pagination__item"
-                 v-for="n in items" :key="n"
-                 :class="{'pagination__item--active': value === n, 'pagination__more': isNaN(n)}"
+        <div class="pagination__item"
+             v-for="n in items" :key="n"
+             :class="{'pagination__item--active': value === n, 'pagination__more': isNaN(n)}"
+        >
+            <a v-if="!isNaN(n)"
+               :href="link(n)"
+               v-text="n"
+               @click="to(n, $event)"
+               class="link pagination__link"
+            ></a>
+
+            <span v-else>...</span>
+
+        </div>
+
+
+        <div v-if="!noNavigation"
+             class="pagination__item"
+             :class="{'pagination__item--disabled': value === totalPages && !cycle, 'pagination__item--active': !chevron}"
+             :key="2"
+        >
+            <a :href="link(value+1)"
+               :class="['link', 'pagination__next', {'chevron__right': chevron}]"
+               @click="next($event)"
             >
-                <a v-if="!isNaN(n)"
-                   :href="link(n)"
-                   v-text="n"
-                   @click.prevent="toPage(n)"
-                   class="link pagination__link"
-                ></a>
+                {{nextText}}
+            </a>
+        </div>
 
-                <span v-else>...</span>
-
-            </div>
-
-
-            <div v-if="navigation"
-                 class="pagination__item"
-                 :class="{'pagination__item--disabled': value === length && !cycle}"
-                 :key="2"
-            >
-                <a :href="link(value+1)"
-                   class="link pagination__next chevron__right"
-                   @click.prevent="nextPage()"
-                >
-                    next
-                </a>
-            </div>
-
-        </transition-group>
-
-
-    </nav>
-
+    </transition-group>
 
 </template>
 
@@ -67,32 +61,43 @@
                 default: "#<page>"
             },
 
-            length: {
+            totalPages: {
                 type: Number,
                 default: 1
             },
 
-            current: {
+            currentPage: {
                 type: Number,
                 default: 1
             },
 
             cycle: Boolean,
 
-            navigation: Boolean,
+            noNavigation: Boolean,
 
-            prevent: Boolean,
+            preventDefault: Boolean,
 
-            shownPage: {
+            shownPages: {
                 type: Number,
                 default: 5
-            }
+            },
+
+            chevron: Boolean,
+            previousText: {
+                type: String,
+                default: "previous"
+            },
+
+            nextText: {
+                type: String,
+                default: "next"
+            },
         },
 
         data(){
             return {
-                value: this.current,
-                shown: this.even(this.shownPage)
+                value: this.currentPage,
+                shown: this.even(this.shownPages)
             }
         },
 
@@ -102,9 +107,9 @@
 
                 let shown = this.shown,
                     value = this.value,
-                    length = this.length
+                    length = this.totalPages
 
-                if (this.shownPage === 0) return []
+                if (this.shownPages === 0) return []
 
                 shown = shown < 3 ? 3 : this.even(shown)
 
@@ -149,33 +154,39 @@
                 return Array.from({length: (end - start + 1)}, (v, k) => k + start);
             },
 
-            previousPage(){
+            previous(event){
+                this.preventDef(event)
                 if (this.value <= 1 && !this.cycle) return
                 this.value--
-                if (this.value < 1) this.value = this.length
+                if (this.value < 1) this.value = this.totalPages
                 this.$emit("previousPage", this.value)
                 return false
             },
 
-            toPage(value){
+            preventDef(event){
+                if (this.preventDefault) event.preventDefault()
+            },
+
+            to(value, event){
+                this.preventDef(event)
                 this.value = value
-                this.$emit("toPage", this.value)
+                this.$emit("gotoPage", this.value)
                 return false
             },
 
-            nextPage(){
-                if (this.value >= this.length && !this.cycle) return
+            next(event){
+
+                this.preventDef(event)
+
+                if (this.value >= this.totalPages && !this.cycle) return
 
                 this.value++
-                if (this.value > this.length) this.value = 1
+
+                if (this.value > this.totalpages) this.value = 1
 
                 this.$emit("nextPage", this.value)
 
                 return false
-            },
-
-            currentPage(value){
-                this.value = value
             },
 
             even(value){
@@ -183,9 +194,8 @@
             }
         },
 
-        mounted(){
-            this.$on('currentPage', this.currentPage)
-        }
+
+
     }
 </script>
 

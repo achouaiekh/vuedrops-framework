@@ -1,6 +1,6 @@
 
 .pagination
-  padding .5em
+  padding $pagination-padding
   position relative
   display flex
   justify-content center
@@ -10,7 +10,7 @@
   &__item
     cursor pointer
     position relative
-    margin-left .4em
+    margin-left $pagination-item-space-between
     &:focus, &:hover
       outline none
       color $pagination-hover-color
@@ -41,13 +41,11 @@
   &__simple
     .pagination__item
       padding .2em
-      border .05em solid rgba(0, 0, 0, .25)
+      border $pagination-border-width solid currentcolor
       min-width 1.6em
       &:hover
-        background-color $pagination-hover-color
-        color inherit
-
-
+        border-color  $pagination-hover-color
+        color $pagination-hover-color
 
     .pagination__item--active
       background-color $pagination-active-color

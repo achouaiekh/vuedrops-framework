@@ -768,12 +768,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
-//
-//
-//
-//
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
 
@@ -786,32 +780,43 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             default: "#<page>"
         },
 
-        length: {
+        totalPages: {
             type: Number,
             default: 1
         },
 
-        current: {
+        currentPage: {
             type: Number,
             default: 1
         },
 
         cycle: Boolean,
 
-        navigation: Boolean,
+        noNavigation: Boolean,
 
-        prevent: Boolean,
+        preventDefault: Boolean,
 
-        shownPage: {
+        shownPages: {
             type: Number,
             default: 5
+        },
+
+        chevron: Boolean,
+        previousText: {
+            type: String,
+            default: "previous"
+        },
+
+        nextText: {
+            type: String,
+            default: "next"
         }
     },
 
     data: function data() {
         return {
-            value: this.current,
-            shown: this.even(this.shownPage)
+            value: this.currentPage,
+            shown: this.even(this.shownPages)
         };
     },
 
@@ -821,9 +826,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
             var shown = this.shown,
                 value = this.value,
-                length = this.length;
+                length = this.totalPages;
 
-            if (this.shownPage === 0) return [];
+            if (this.shownPages === 0) return [];
 
             shown = shown < 3 ? 3 : this.even(shown);
 
@@ -860,39 +865,42 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                 return k + start;
             });
         },
-        previousPage: function previousPage() {
+        previous: function previous(event) {
+            this.preventDef(event);
             if (this.value <= 1 && !this.cycle) return;
             this.value--;
-            if (this.value < 1) this.value = this.length;
+            if (this.value < 1) this.value = this.totalPages;
             this.$emit("previousPage", this.value);
             return false;
         },
-        toPage: function toPage(value) {
+        preventDef: function preventDef(event) {
+            if (this.preventDefault) event.preventDefault();
+        },
+        to: function to(value, event) {
+            this.preventDef(event);
             this.value = value;
-            this.$emit("toPage", this.value);
+            this.$emit("gotoPage", this.value);
             return false;
         },
-        nextPage: function nextPage() {
-            if (this.value >= this.length && !this.cycle) return;
+        next: function next(event) {
+
+            this.preventDef(event);
+
+            if (this.value >= this.totalPages && !this.cycle) return;
 
             this.value++;
-            if (this.value > this.length) this.value = 1;
+
+            if (this.value > this.totalpages) this.value = 1;
 
             this.$emit("nextPage", this.value);
 
             return false;
         },
-        currentPage: function currentPage(value) {
-            this.value = value;
-        },
         even: function even(value) {
             return value % 2 ? value : value + 1;
         }
-    },
-
-    mounted: function mounted() {
-        this.$on('currentPage', this.currentPage);
     }
+
 });
 
 /***/ }),
@@ -996,8 +1004,6 @@ var _class = function () {
             } while (s < this.currentSlide);
 
             this.previousSlide = this.currentSlide = s;
-
-            console.log('current', s);
 
             if (this.fade) {
                 this.el.classList.add('fade');
@@ -1188,8 +1194,6 @@ var _class = function () {
         key: 'setLeft',
         value: function setLeft(position) {
 
-            console.log('this', this);
-
             var prop = this.vertical ? 'top' : 'left';
 
             this.track.style[prop] = position + 'px';
@@ -1300,8 +1304,6 @@ var _class = function () {
             var position = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.currentSlide;
             var from = arguments[1];
 
-
-            console.log(position);
 
             if (this.animating) return;
 
@@ -1635,9 +1637,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__components_carousel_carousel_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__components_carousel_carousel_vue__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_pagination_pagination_vue__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_pagination_pagination_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__components_pagination_pagination_vue__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__mixins__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__components_icon_icon_vue__ = __webpack_require__(29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__components_icon_icon_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__components_icon_icon_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__mixins__ = __webpack_require__(3);
 /* harmony reexport (default from non-hamory) */ __webpack_require__.d(__webpack_exports__, "slide", function() { return __WEBPACK_IMPORTED_MODULE_0__components_carousel_slide_vue___default.a; });
 /* harmony reexport (default from non-hamory) */ __webpack_require__.d(__webpack_exports__, "carousel", function() { return __WEBPACK_IMPORTED_MODULE_1__components_carousel_carousel_vue___default.a; });
+
 
 
 
@@ -1647,10 +1652,11 @@ function plugin(Vue) {
     Vue.component("pagination", __WEBPACK_IMPORTED_MODULE_2__components_pagination_pagination_vue___default.a);
     Vue.component("slide", __WEBPACK_IMPORTED_MODULE_0__components_carousel_slide_vue___default.a);
     Vue.component("carousel", __WEBPACK_IMPORTED_MODULE_1__components_carousel_carousel_vue___default.a);
+    Vue.component("vd-icon", __WEBPACK_IMPORTED_MODULE_3__components_icon_icon_vue___default.a);
 }
 
 if (typeof window !== 'undefined' && window.Vue) {
-    window.Vue.mixin(__WEBPACK_IMPORTED_MODULE_3__mixins__["a" /* default */]);
+    window.Vue.mixin(__WEBPACK_IMPORTED_MODULE_4__mixins__["a" /* default */]);
     window.Vue.use(plugin);
 }
 
@@ -2277,30 +2283,31 @@ exports.push([module.i, "\n.slide {\n  margin: 0;\n  position: relative;\n  floa
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
-  return _c('nav', [_c('transition-group', {
+  return _c('transition-group', {
     staticClass: "pagination",
     attrs: {
       "name": "pagination",
-      "tag": "div"
+      "tag": "nav"
     }
-  }, [(_vm.navigation) ? _c('div', {
+  }, [(!_vm.noNavigation) ? _c('div', {
     key: 1,
-    staticClass: "pagination__item",
-    class: {
-      'pagination__item--disabled': _vm.value === 1 && !_vm.cycle
-    }
+    class: ['pagination__item', {
+      'pagination__item--disabled': _vm.value === 1 && !_vm.cycle,
+      'pagination__item--active': !_vm.chevron
+    }]
   }, [_c('a', {
-    staticClass: "link pagination__previous chevron__left",
+    class: ['link', 'pagination__previous', {
+      'chevron__left': _vm.chevron
+    }],
     attrs: {
       "href": _vm.link(_vm.value - 1)
     },
     on: {
       "click": function($event) {
-        $event.preventDefault();
-        _vm.previousPage($event)
+        _vm.previous($event)
       }
     }
-  }, [_vm._v("\n                previous\n            ")])]) : _vm._e(), _vm._v(" "), _vm._l((_vm.items), function(n) {
+  }, [_vm._v("\n            " + _vm._s(_vm.previousText) + "\n        ")])]) : _vm._e(), _vm._v(" "), _vm._l((_vm.items), function(n) {
     return _c('div', {
       key: n,
       staticClass: "pagination__item",
@@ -2317,29 +2324,29 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       },
       on: {
         "click": function($event) {
-          $event.preventDefault();
-          _vm.toPage(n)
+          _vm.to(n, $event)
         }
       }
     }) : _c('span', [_vm._v("...")])])
-  }), _vm._v(" "), (_vm.navigation) ? _c('div', {
+  }), _vm._v(" "), (!_vm.noNavigation) ? _c('div', {
     key: 2,
     staticClass: "pagination__item",
     class: {
-      'pagination__item--disabled': _vm.value === _vm.length && !_vm.cycle
+      'pagination__item--disabled': _vm.value === _vm.totalPages && !_vm.cycle, 'pagination__item--active': !_vm.chevron
     }
   }, [_c('a', {
-    staticClass: "link pagination__next chevron__right",
+    class: ['link', 'pagination__next', {
+      'chevron__right': _vm.chevron
+    }],
     attrs: {
       "href": _vm.link(_vm.value + 1)
     },
     on: {
       "click": function($event) {
-        $event.preventDefault();
-        _vm.nextPage()
+        _vm.next($event)
       }
     }
-  }, [_vm._v("\n                next\n            ")])]) : _vm._e()], 2)], 1)
+  }, [_vm._v("\n            " + _vm._s(_vm.nextText) + "\n        ")])]) : _vm._e()], 2)
 },staticRenderFns: []}
 module.exports.render._withStripped = true
 if (false) {
@@ -2539,6 +2546,120 @@ module.exports = function listToStyles (parentId, list) {
   return styles
 }
 
+
+/***/ }),
+/* 25 */,
+/* 26 */,
+/* 27 */,
+/* 28 */,
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var Component = __webpack_require__(0)(
+  /* script */
+  __webpack_require__(30),
+  /* template */
+  __webpack_require__(31),
+  /* scopeId */
+  null,
+  /* cssModules */
+  null
+)
+Component.options.__file = "C:\\Users\\Amine\\Desktop\\Code\\vuedrops-framework\\src\\js\\components\\icon\\icon.vue"
+if (Component.esModule && Object.keys(Component.esModule).some(function (key) {return key !== "default" && key !== "__esModule"})) {console.error("named exports are not supported in *.vue files.")}
+if (Component.options.functional) {console.error("[vue-loader] icon.vue: functional components are not supported with templates, they should use render functions.")}
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-070bf502", Component.options)
+  } else {
+    hotAPI.reload("data-v-070bf502", Component.options)
+  }
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 30 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+//
+//
+//
+//
+//
+//
+//
+//
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    name: "vd-icon",
+    props: {
+        md: Boolean,
+        mdi: Boolean,
+        fa: Boolean
+    },
+
+    data: function data() {
+        return {
+            classes: []
+        };
+    },
+
+
+    methods: {
+        getClasses: function getClasses() {
+
+            var classes = ["vd-icon"];
+
+            var vendors = {
+                fa: "fa",
+                md: "material-icons",
+                mdi: "mdi"
+            },
+                vendor = this.mdi ? vendors.mdi : this.md ? vendors.md : vendors.fa;
+
+            classes.push(vendor);
+
+            var icon = this.$slots.default.pop().text.trim().replace(/\s+|\-/g, '_');
+
+            this.$el.innerHTML = this.md ? icon : "";
+
+            if (!this.md) classes.push(vendor.concat('-', icon.replace("_", "-")));
+
+            return classes;
+        }
+    },
+
+    mounted: function mounted() {
+        this.classes = this.getClasses();
+    }
+});
+
+/***/ }),
+/* 31 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('i', {
+    class: _vm.classes
+  }, [_vm._t("default")], 2)
+},staticRenderFns: []}
+module.exports.render._withStripped = true
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+     require("vue-hot-reload-api").rerender("data-v-070bf502", module.exports)
+  }
+}
 
 /***/ })
 /******/ ]);
