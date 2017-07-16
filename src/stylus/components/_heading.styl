@@ -1,0 +1,43 @@
+/*h1,h2,h3,h4,h5,h6
+  display block*/
+
+.heading
+  display flex
+  white-space nowrap
+  align-items baseline
+
+  &:after, &:before
+    width 100%
+    height 2px
+    background-color #eee
+    flex-grow 1
+
+.heading.aly
+  &:after
+    content ""
+    margin-left .2em
+
+.heading.alya
+  &:after, &:before
+    content ""
+  &:before
+    margin-right .2em
+  &:after
+    margin-left .2em
+
+.heading
+  &.nady, &.nadya
+    flex-direction column
+    .link
+      width 100%
+    &:after
+      content ""
+
+.heading.nadya
+  &:before
+    content ""
+
+
+
+
+

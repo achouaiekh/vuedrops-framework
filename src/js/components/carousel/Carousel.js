@@ -1,5 +1,3 @@
-import  Animation from 'vuedrops-animate'
-
 
 export default class {
 
@@ -112,7 +110,7 @@ export default class {
 
     setup() {
 
-        this.animation = new Animation({
+        this.animation = this.vm.animation.setOptions({
             speed: this.speed,
             context: this,
         })
@@ -244,6 +242,7 @@ export default class {
     }
 
     calculateHeight(position = this.currentSlide) {
+        this.screenWidth = this.screen.clientWidth
 
         if (this.fade) {
             return this.slides[position].offsetHeight

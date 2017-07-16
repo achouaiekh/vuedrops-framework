@@ -5,8 +5,8 @@ var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
     entry: {
-        "vuedrops-framework": './src/index.js',
-        themes: './src/simple.styl'
+        "vuedrops-framework": './src/js/index.js',
+        themes: './src/stylus/app.styl'
     },
 
     devtool: 'source-map',
@@ -14,7 +14,7 @@ module.exports = {
         path: path.resolve(__dirname, './dist'),
         publicPath: 'dist/',
         libraryTarget: "umd",
-        library: "VDCarousel",
+        library: "vuedrops",
         filename: '[name].js'
     },
     module: {

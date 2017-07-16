@@ -1,0 +1,40 @@
+.chevron__left,
+.chevron__top,
+.chevron__right,
+.chevron__bottom
+  overflow hidden
+  text-indent -999px
+  position relative
+  width 1em
+  display block
+
+  &:before, &:after
+    content ''
+    position: absolute;
+    left 25%
+    width .1em
+    height 50%
+    background currentColor
+    transition transform 0.3s, background-color 0.3s
+    backface-visibility hidden
+
+  &:before
+    transform: translateX(-50%) rotate(30deg);
+    transform-origin: 0 100%;
+
+  &:after
+    top: 50%
+    transform translateX(-50%) rotate(-30deg)
+    transform-origin 0 0
+
+  &:hover
+    &:before, &:after
+      background #cc6055
+    &:before
+      transform translateX(-50%) rotate(45deg)
+    &:after
+      transform translateX(-50%) rotate(-45deg)
+
+.chevron__right
+  transform-origin 50% 50%
+  transform rotate(180deg)

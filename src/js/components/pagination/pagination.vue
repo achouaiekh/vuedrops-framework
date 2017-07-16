@@ -1,44 +1,54 @@
+
 <template>
 
-    <nav class="pagination">
-
-        <div v-if="navigation" class="pagination__navigation">
-            <a :href="link(value-1)"
-               :class="{'pagination__navigation__link--disabled': value === 1 && !cycle}"
-               class="pagination__navigation__link prev"
-               @click.prevent="previousPage"
-
+    <nav>
+        <transition-group name="pagination" tag="div" class="pagination">
+            <div
+                    v-if="navigation"
+                    class="pagination__item"
+                    :class="{'pagination__item--disabled': value === 1 && !cycle}"
+                    :key="1"
             >
-                prev
-            </a>
-        </div>
+                <a :href="link(value-1)"
+                   class="link pagination__previous chevron__left"
+                   @click.prevent="previousPage"
+                >
+                    previous
+                </a>
+            </div>
 
 
-        <div class="pagination__item"
-             v-for="n in items" :key="n"
-             :class="{'pagination__item--active': value === n, more: isNaN(n)}"
-        >
-            <a v-if="!isNaN(n)"
-               :href="link(n)"
-               v-text="n"
-               @click.prevent="toPage(n)"
-               class="pagination__link"
-            ></a>
-
-            <span v-else class="pagination__more">...</span>
-
-        </div>
-
-
-        <div v-if="navigation" class="pagination__navigation">
-            <a :href="link(value+1)"
-               :class="{'pagination__navigation__link--disabled': value === length && !cycle}"
-               class="pagination__navigation__link next"
-               @click.prevent="nextPage()"
+            <div class="pagination__item"
+                 v-for="n in items" :key="n"
+                 :class="{'pagination__item--active': value === n, 'pagination__more': isNaN(n)}"
             >
-                next
-            </a>
-        </div>
+                <a v-if="!isNaN(n)"
+                   :href="link(n)"
+                   v-text="n"
+                   @click.prevent="toPage(n)"
+                   class="link pagination__link"
+                ></a>
+
+                <span v-else>...</span>
+
+            </div>
+
+
+            <div v-if="navigation"
+                 class="pagination__item"
+                 :class="{'pagination__item--disabled': value === length && !cycle}"
+                 :key="2"
+            >
+                <a :href="link(value+1)"
+                   class="link pagination__next chevron__right"
+                   @click.prevent="nextPage()"
+                >
+                    next
+                </a>
+            </div>
+
+        </transition-group>
+
 
     </nav>
 
@@ -54,7 +64,7 @@
 
             href: {
                 type: String,
-                default: "#"
+                default: "#<page>"
             },
 
             length: {
@@ -92,8 +102,14 @@
 
                 let shown = this.shown,
                     value = this.value,
-                    length = this.length,
-                    center = Math.ceil(shown / 2)
+                    length = this.length
+
+                if (this.shownPage === 0) return []
+
+                shown = shown < 3 ? 3 : this.even(shown)
+
+
+                let center = Math.ceil(shown / 2)
 
                 if (length <= shown) return this.range(1, length)
 
@@ -105,6 +121,8 @@
 
                 if (max === length)
                     min = length - shown - 1
+
+                min = min > 0 ? min : 1
 
 
                 const range = this.range(min, max)
@@ -171,35 +189,3 @@
     }
 </script>
 
-<style lang="stylus">
-    .pagination
-        position relative
-        display flex
-        justify-content center
-        align-items center
-        padding 0
-        margin 0
-
-        &__item, &__navigation
-            position relative
-            padding 0
-            margin .3em
-            &:focus
-                outline none
-
-        &__item--active
-           .pagination__link
-            color cornflowerblue
-
-        &__navigation__link--disabled
-            opacity .2
-            pointer-events none
-
-        &__link, &__more, &__navigation__link
-            padding 0
-            margin 0
-            color coral
-            text-decoration none
-
-
-</style>

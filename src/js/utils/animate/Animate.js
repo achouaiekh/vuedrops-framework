@@ -1,4 +1,3 @@
-
 import easings from './easings'
 import OptionsWrapper from './OptionWrapper'
 
@@ -18,12 +17,18 @@ export default class Animation {
 
         this.requestAnimationFrame = Animation.registerRAF()
 
-        Object.assign(this.defaultOptions = {}, defaultOptions, options)
+        this.defaultOptions = defaultOptions
+        this.setOptions(options)
 
         this.callbacks = {}
         this.canceled = {}
         this.registeredPromises = []
         this.currentPromise = Promise.resolve(0)
+    }
+
+    setOptions(options) {
+        Object.assign(this.defaultOptions, options)
+        return this
     }
 
 

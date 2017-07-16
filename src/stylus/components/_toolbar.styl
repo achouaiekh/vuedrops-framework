@@ -1,43 +1,53 @@
 .vd-navbar
+  width 100%
+  font-family Aharoni
   display flex
-  -webkit-flex-wrap wrap
   flex-wrap wrap
-  justify-content center
+  justify-content stretch
   align-items: center
-  padding: 1em 1em .5em
   text-align: center
-  background:  #ff6e40
+  background:  $theme.secondary
   color: #fff
   elevation(2)
 
-  &__item
-    min-width 33%
-    padding 1em
+  &__brand, &__content, &__menu, &__settings
+    display flex
+    flex-wrap wrap
+    justify-content center
+    align-items center
+    flex-grow   1
+    padding .5em
+    font-family south-garden
+    span
+      font-family Tahoma
+      display block
+      font-size: .6em
 
-  &__item--social
+  &__social
     width 100%
+    flex-grow 0
 
 
   .link--page
+    padding 1em
     display: inline-block
-    text-transform uppercase
-    font-weight bold
+    //text-transform uppercase
     font-size 0.85em
+    opacity .75
     transition opacity .3s
 
     &:before
       content ''
       position absolute
-      top 100%
+      bottom 0
       left 50%
-      width 30px
+      width 20%
       height 2px
-      margin 5px 0 0 -15px
-      background: $theme.secondary
+      margin 0 0 0 -10%
+      background: #fff
       transition transform 0.3s
       transform scale3d(0, 1, 1)
     &:hover
-      opacity .75
       &:before
         transform scale3d(1, 1, 1)
 
@@ -46,27 +56,15 @@
     font-size 0.65em
 
   .link--active
+    opacity 1
     &:before
       transform scale3d(1, 1, 1)
 
   .link--social
     opacity .75
-    margin 0 0.75em
-    text-transform capitalize
+    margin  0.75em
+    font-size .8em
     &:hover
       opacity 1
-
-  .text-hidden
-    display none
-
-
-.link
-  color inherit
-  position relative
-  letter-spacing 1px
-  text-decoration none
-  
-.fa-block
-  display: block !important
 
 

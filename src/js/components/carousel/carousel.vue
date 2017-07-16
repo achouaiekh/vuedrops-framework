@@ -13,31 +13,33 @@
             </div>
         </div>
 
-        <div class="navigation">
+        <nav class="navigation">
 
             <a
                     @click="prev()"
                     href="#"
-                    class="nav prev">
+                    class="arrow-navigation arrow-navigation__previous">
                 <--
             </a>
 
             <pagination
+                    class="dot"
                     ref="pagination"
                     @nextPage="next"
                     @toPage="to"
                     @previousPage="prev"
                     :length="dots"
+                    :shown-page ="paginationShownPage"
                     :class="paginationClass"
             ></pagination>
 
             <a
                     @click="next()"
                     href="#"
-                    class="nav next">
+                    class="arrow-navigation  arrow-navigation__next">
                 -->
             </a>
-        </div>
+        </nav>
 
 
     </div>
@@ -49,12 +51,10 @@
 
     import Carousel from './Carousel'
     import props from './props'
-    import {pagination} from 'vuedrops-pagination'
 
     export default {
 
         name: 'carousel',
-        components: {pagination},
 
         data() {
             return {
@@ -96,7 +96,7 @@
     }
 </script>
 
-<style lang="stylus">
+<style lang="stylus" rel="stylesheet/stylus">
 
     .vd-carousel
 
@@ -109,6 +109,7 @@
             overflow: hidden
             position: relative
             display: block
+            width: 100%
 
             .track
                 display: block

@@ -5,6 +5,11 @@ export default {
         default: "simple",
     },
 
+    paginationShownPage: {
+        type: Number,
+        default: 5,
+    },
+
     slideToShow: {
         type: [Number, Object, String],
         default: 1,
