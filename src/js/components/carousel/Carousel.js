@@ -1,46 +1,55 @@
-
 export default class {
 
     constructor(vm) {
-
-        this.vm = vm
-        this.el = vm.$el
-
-        this.initialize()
-        this.setProps()
-        this.setup()
-        this.init()
+        this.initProperties(vm)
         this.initEvents()
-    }
-
-
-    init() {
-
-        this.updateSlideToShow()
-        this.setSlides()
-        this.setDimension()
+        this.setup()
         this.autoPlay()
     }
 
-    initialize() {
+    initProperties(vm) {
+        this.vm = vm
+        this.el = vm.$el
+        this.pagination = this.getPaginationComponent()
         this.screen = this.el.querySelector('.screen')
         this.track = this.el.querySelector('.track')
         this.slides = Array.from(this.track.querySelectorAll('.slide'))
         this.slideCount = this.slides.length
         this.slideToShowCount = 1
         this.slideToScrollCount = 1
-        this.prevArrow = this.el.querySelector('.previous.arrow')
-        this.nextArrow = this.el.querySelector('.next.arrow')
-        this.dotNav = this.el.querySelector('.dot.pagination')
         this.screenWidth = this.screen.clientWidth
         this.animationId = null
         this.imgLoaded = false
         this.__display = 'block'
         this.touch = {swipeLength: 0}
         this.dragging = false
+
+        this.initProps()
+
+        this.animation = this.vm.animation.setOptions({
+            speed: this.speed,
+            context: this,
+        })
+
+        this.breakpoints = Object.assign({}, BREAKPOINTS, this.breakpoints)
     }
 
-    setProps() {
+
+    setup() {
+        this.setupSlideToShowAndToScroll()
+        this.setupCurrentSlide()
+        this.setupSlides()
+        this.setupDimension()
+        this.setupPagination()
+    }
+
+    setupCurrentSlide() {
+        //setup the initial current slide to meet the current page
+        this.currentSlide = this.previousSlide =
+            Math.floor(this.currentSlide / this.slideToScrollCount) * this.slideToScrollCount
+    }
+
+    initProps() {
 
         let props = this.vm.$props
 
@@ -49,11 +58,13 @@ export default class {
     }
 
     parseIfNumber(value) {
-
         return !isNaN(value) && typeof value !== "boolean" ? parseInt(value) : value
     }
 
-    updateSlideToShow() {
+    setupSlideToShowAndToScroll() {
+
+        if (this.fade)
+            return this.slideToScrollCount = this.slideToShowCount = 1
 
         let slideToShow = this.slideToShow,
             slideToScroll = this.slideToScroll,
@@ -66,64 +77,36 @@ export default class {
         if (typeof slideToScroll === 'number')
             this.slideToScrollCount = slideToScroll
 
+        if (!typeof slideToScroll === 'number' && !typeof slideToShow === 'number')
+            Object.keys(this.breakpoints)
+                .sort((a, b) => a - b)
+                .forEach(breakpoint => {
+                    if (screenWidth > this.breakpoints[breakpoint]) {
 
-        Object.keys(this.breakpoints)
-            .sort((a, b) => a - b)
-            .forEach(breakpoint => {
-                if (screenWidth > this.breakpoints[breakpoint]) {
+                        if (slideToShow.hasOwnProperty(breakpoint))
+                            this.slideToShowCount = this.parseIfNumber(slideToShow[breakpoint])
 
-                    if (typeof slideToShow === 'object' && slideToShow.hasOwnProperty(breakpoint) && typeof slideToShow[breakpoint] === 'number')
-                        this.slideToShowCount = slideToShow[breakpoint]
+                        if (slideToScroll.hasOwnProperty(breakpoint))
+                            this.slideToScrollCount = this.parseIfNumber(slideToScroll[breakpoint])
+                    }
+                })
 
-                    if (typeof slideToScroll === 'object' && slideToScroll.hasOwnProperty(breakpoint) && typeof slideToScroll[breakpoint] === 'number')
-                        this.slideToScrollCount = slideToScroll[breakpoint]
-                }
-            })
-
-        //setup the initial current slide to meet the current dot
-        let s = 0
-
-        do
-            s += this.slideToScrollCount
-        while (s < this.currentSlide)
-
-        this.previousSlide = this.currentSlide = s
-
-
-        if (this.fade) {
-            this.el.classList.add('fade')
-            this.slideToShowCount = 1
-        }
-
-        if (this.slideCount <= this.slideToShowCount) {
-            this.slideToShowCount = this.slideCount;
-            [this.prevArrow, this.nextArrow, this.dotNav].forEach((el) => el.classList.add('disabled'))
-        }
+        if (this.slideCount <= this.slideToShowCount)
+            this.slideToShowCount = this.slideCount
 
         if (this.slideToShowCount < this.slideToScrollCount)
             this.slideToScrollCount = this.slideToShowCount
 
     }
 
-
-    setup() {
-
-        this.animation = this.vm.animation.setOptions({
-            speed: this.speed,
-            context: this,
-        })
-
-        this.breakpoints = Object.assign({}, BREAKPOINTS, this.breakpoints)
-
-        if (this.vertical) this.el.classList.add('vertical')
-    }
-
-    setSlides() {
+    setupSlides() {
 
         // make sure to remove the existing cloned slides
         this.track.querySelectorAll('.slide.cloned').forEach(cloned => this.track.removeChild(cloned))
 
         if (this.fade) {
+
+            this.el.classList.add('carousel__fade')
 
             this.slides.forEach((slide, index) => this.fadeOut(index))
 
@@ -141,7 +124,6 @@ export default class {
                     this.track.insertBefore(slice, this.track.firstChild)
                 })
 
-
             this.slides
                 .slice(0, this.slideToShowCount)
                 .forEach((slice) => {
@@ -151,12 +133,8 @@ export default class {
                 })
         }
 
-        // select all type slide (cloned and original)
+        // select all type of slides (cloned and original)
         this.allSlides = Array.from(this.track.querySelectorAll('.slide'))
-
-        //the slides have same width if vertical or fade
-        if (this.fade || this.vertical)
-            this.allSlides.forEach((slide) => slide.style.width = this.screenWidth + 'px')
 
         //select all image (cloned and original)
         this.imgs = Array.from(this.track.querySelectorAll('.slide img'))
@@ -173,12 +151,12 @@ export default class {
         this.slides[position].style.zIndex = this.zIndex + 1
     }
 
-    setDimension() {
+    setupDimension() {
 
         if (this.imgLoaded) {
             this.el.style.display = this.__display
+            this.setupWidth()
             this.setHeight(this.calculateHeight())
-            this.setDots()
 
         } else {
 
@@ -188,8 +166,9 @@ export default class {
             this.loadImages().then(() => {
                 this.imgLoaded = true
                 this.el.style.display = this.__display
+                this.imageFractions = this.getImageFractions()
+                this.setupWidth()
                 this.setHeight(this.calculateHeight())
-                this.setDots()
             })
         }
     }
@@ -208,30 +187,48 @@ export default class {
 
     }
 
+
+    getImageFractions() {
+        return this.allSlides.map((slide) => {
+            let img = slide.querySelector('img')
+            return img.clientWidth / img.clientHeight
+        })
+    }
+
+    setupWidth() {
+
+        this.imageFractions = this.getImageFractions()
+
+        let min =  Math.min.apply(Math, this.imageFractions),
+            max = Math.max.apply(Math, this.imageFractions),
+            maxH = this.screenWidth / min,
+            maxWidth = maxH * max
+
+
+        //the slides have same width as the carousel screen if it is vertical or fading
+        if (this.fade || this.vertical) {
+            this.allSlides.forEach((slide) => slide.style.width = this.screenWidth + 'px')
+            this.track.style.width = this.screen.clientWidth + 'px'
+        } else
+            this.track.style.width = maxWidth * this.allSlides.length + 'px'
+
+    }
+
     setHeight(height) {
+
 
         if (this.fade)
             this.track.style.height = height + 'px'
 
         else if (this.vertical) {
             this.screen.style.height = height + 'px'
-            this.track.style.width = this.screen.clientWidth + 'px'
+
 
             this.allSlides.forEach((slide) => slide.style.height = slide.querySelector('img').offsetHeight + 'px')
         }
 
-        else {
-
-            this.allSlides.forEach((slide) => {
-                slide.style.height = height + 'px'
-                slide.style.width = slide.querySelector('img').clientWidth + 'px'
-            })
-
-            this.screen.style.height = height + 'px'
-
-            this.track.style.width = this.allSlides
-                    .reduce((initial, slide) => initial + slide.offsetWidth + 1, 0) + 'px'
-        }
+        else
+            this.allSlides.forEach((slide) => slide.style.height = height + 'px')
 
 
         this.setLeft(this.calculateLeft(this.currentSlide))
@@ -240,6 +237,8 @@ export default class {
     }
 
     calculateHeight(position = this.currentSlide) {
+
+        //update the screen width (on resize)
         this.screenWidth = this.screen.clientWidth
 
         if (this.fade) {
@@ -253,15 +252,11 @@ export default class {
         }
 
         else {
-            let fraction = this.allSlides
-                .slice(position + this.slideToShowCount, position + 2 * this.slideToShowCount)
-                .reduce((initial, slide) => {
-                    let img = slide.querySelector('img')
 
-                    return initial + img.clientWidth / img.clientHeight
-                }, 0)
-
-            return this.screenWidth / fraction
+            return this.screenWidth / (this.imageFractions
+                    .slice(position + this.slideToShowCount, position + 2 * this.slideToShowCount)
+                    .reduce((initial, fraction) => initial + fraction, 0)
+                )
         }
     }
 
@@ -291,12 +286,10 @@ export default class {
 
         let _this = this
 
+        clearInterval(this.animationId)
+
         if (autoplay)
             this.animationId = setInterval(() => _this.next(), this.autoplayDelay)
-
-        else
-            clearInterval(this.animationId)
-
     }
 
     setFade(opacity) {
@@ -313,8 +306,6 @@ export default class {
         this.currentSlide += this.slideToScrollCount
 
         this.rectifyNext()
-
-        this.vm.$emit('currentPage', this.getDots(this.currentSlide))
 
         this.animate()
     }
@@ -361,10 +352,12 @@ export default class {
     }
 
     calculateOffset() {
-
         return this.slideToScrollCount === 1 ? 0 : (this.slideCount - 1) % this.slideToScrollCount
+    }
 
+    goto(to) {
 
+        this.animate((to - 1) * this.slideToScrollCount)
     }
 
     animate(position = this.currentSlide, from) {
@@ -375,7 +368,7 @@ export default class {
 
         this.currentSlide = position
 
-        this.setDots()
+        this.setupPagination()
 
         this.registerHeightAnimation()
 
@@ -398,26 +391,7 @@ export default class {
 
     }
 
-
-    /* getDots() {
-
-     let count = Math.ceil(this.slides.length / this.slideToScrollCount),
-     index = -1,
-     dots = []
-
-     while (++index < count) {
-     dots.push({
-     current: this.slideToScrollCount * index,
-     active: (this.currentSlide === this.slideToScrollCount * index),
-     index,
-     })
-     }
-
-     return dots
-
-     }*/
-
-    getDots(value) {
+    getPage(value) {
         return Math.ceil(value / this.slideToScrollCount)
     }
 
@@ -441,7 +415,7 @@ export default class {
 
             easing = this.slideEasing
 
-        return this.animation.then().register("slide" ,this.setLeft).options({from, to, easing, during}).context(this)
+        return this.animation.then().register("slide", this.setLeft).options({from, to, easing, during}).context(this)
     }
 
     registerFadeAnimation() {
@@ -449,19 +423,38 @@ export default class {
         return this.animation.then().register("fade", this.setFade).from(0).to(1).easing(this.fadeEasing).context(this)
     }
 
-    setDots() {
-        this.vm.dots = this.getDots(this.slideCount)
-        this.vm.$refs.pagination.value = this.getDots(this.currentSlide) + 1
+    setupPagination() {
+        this.pagination.value = this.currentPage()
+        this.pagination.total = this.totalPages()
+    }
+
+    getPaginationComponent() {
+        if (this.vm.$refs.hasOwnProperty('pagination'))
+            return this.vm.$refs.pagination
+        if (this.vm.$slots.hasOwnProperty('pagination'))
+            return this.vm.$slots.pagination.pop().componentInstance
+    }
+
+    totalPages() {
+        return this.getPage(this.slideCount)
+    }
+
+    currentPage() {
+        return this.getPage(this.currentSlide) + 1
     }
 
     initEvents(remove = false) {
 
-        let eventListener = remove ? 'removeEventListener' : 'addEventListener'
+        this.pagination.$on('previousPage', this.proxy(this.previous))
+        this.pagination.$on('nextPage', this.proxy(this.next))
+        this.pagination.$on('gotoPage', this.proxy(this.goto))
+
+        const eventListener = remove ? 'removeEventListener' : 'addEventListener'
 
         "mousedown touchstart mousemove touchmove mouseup touchend mouseleave touchcancel dblclick".split(" ")
             .forEach((eventType) => this.track[eventListener](eventType, this.proxy(this.swipeHandler)))
 
-        window[eventListener]('resize', this.proxy(this.init))
+        window[eventListener]('resize', this.proxy(this.setup))
     }
 
 

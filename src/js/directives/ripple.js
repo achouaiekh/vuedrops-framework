@@ -33,16 +33,15 @@ let rippleAnimation = (event, ripply_shape, during) => {
     },
 
     createElement = function (str) {
-        let frag = document.createDocumentFragment();
+        let fragment = document.createDocumentFragment(),
+            elem = document.createElement('div')
 
-        let elem = document.createElement('div');
+        elem.innerHTML = str
 
-        elem.innerHTML = str;
+        while (elem.childNodes[0])
+            fragment.appendChild(elem.childNodes[0])
 
-        while (elem.childNodes[0]) {
-            frag.appendChild(elem.childNodes[0]);
-        }
-        return frag;
+        return fragment
     }
 
 

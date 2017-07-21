@@ -4,12 +4,12 @@
 
         <div
                 v-if="!noNavigation"
-                :class="[ 'pagination__item', {'pagination__item--disabled': value === 1 && !cycle,'pagination__item--active': !chevron}]"
+                :class="[ 'pagination__item', {'pagination__item--disabled': value === 1 && !cycle}]"
+                @click="previous($event)"
                 :key="1"
         >
             <a :href="link(value-1)"
                :class="['link', 'pagination__previous', {'chevron__left': chevron}]"
-               @click="previous($event)"
             >
                 {{previousText}}
             </a>
@@ -19,11 +19,11 @@
         <div class="pagination__item"
              v-for="n in items" :key="n"
              :class="{'pagination__item--active': value === n, 'pagination__more': isNaN(n)}"
+             @click="to(n, $event)"
         >
             <a v-if="!isNaN(n)"
                :href="link(n)"
                v-text="n"
-               @click="to(n, $event)"
                class="link pagination__link"
             ></a>
 
@@ -34,12 +34,12 @@
 
         <div v-if="!noNavigation"
              class="pagination__item"
-             :class="{'pagination__item--disabled': value === totalPages && !cycle, 'pagination__item--active': !chevron}"
+             :class="{'pagination__item--disabled': value === totalPages && !cycle}"
+             @click="next($event)"
              :key="2"
         >
             <a :href="link(value+1)"
                :class="['link', 'pagination__next', {'chevron__right': chevron}]"
-               @click="next($event)"
             >
                 {{nextText}}
             </a>
@@ -97,7 +97,8 @@
         data(){
             return {
                 value: this.currentPage,
-                shown: this.even(this.shownPages)
+                shown: this.even(this.shownPages),
+                total: this.totalPages
             }
         },
 
@@ -107,7 +108,7 @@
 
                 let shown = this.shown,
                     value = this.value,
-                    length = this.totalPages
+                    length = this.total
 
                 if (this.shownPages === 0) return []
 

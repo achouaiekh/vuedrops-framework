@@ -16,22 +16,22 @@
         <nav class="navigation">
 
             <a
-                    @click="prev()"
+                    @click="previous()"
                     href="#"
                     class="arrow-navigation arrow-navigation__previous">
                 <--
             </a>
 
-            <pagination
-                    class="dot"
-                    ref="pagination"
-                    @nextPage="next"
-                    @toPage="to"
-                    @previousPage="prev"
-                    :length="dots"
-                    :shown-page ="paginationShownPage"
-                    :class="paginationClass"
-            ></pagination>
+           <slot name="pagination">
+               <pagination
+                       class="pagination__dot pagination__dot--hop white--text"
+                       ref="pagination"
+                       :shown-pages="paginationShownPage"
+                       cycle
+                       chevron
+                       :class="paginationClass"
+               ></pagination>
+           </slot>
 
             <a
                     @click="next()"
@@ -59,38 +59,31 @@
         data() {
             return {
                 carousel: null,
-                dots: 0,
             }
         },
 
         props,
 
-        methods: {
-
-            mount(){
-                this.carousel = new Carousel(this)
-            },
-
-            to(value){
-
-                let v = (value - 1) * this.carousel.slideToScrollCount
-
-                this.carousel.animate(v)
-            },
-
+        methods:{
             next(){
-                return this.carousel.next()
+                this.carousel.next()
             },
 
-            prev(){
-                this.carousel.previous()
+            goto(to){
+                this.carousel.goto(to)
             },
+
+            previous(){
+                this.carousel.previous()
+            }
 
         },
 
 
+
         mounted() {
-            this.mount()
+            console.log(this)
+            this.carousel = new Carousel(this)
         }
 
     }
@@ -110,17 +103,18 @@
             position: relative
             display: block
             width: 100%
+            .slide
+                box-sizing border-box
+                img
+                    height 100%
+                    width auto
+
 
             .track
                 display: block
                 position: relative
                 top: 0
                 left: 0
-
-                &:after
-                    clear: both
-                    content: ""
-                    display: table
 
                 &.grab
                     cursor: grab
