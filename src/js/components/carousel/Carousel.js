@@ -10,14 +10,15 @@ export default class {
     initProperties(vm) {
         this.vm = vm
         this.el = vm.$el
+        this.TweenMax = this.vm.TweenMax
+        this.TimelineMax = new this.vm.TimelineMax()
         this.pagination = this.getPaginationComponent()
-        this.screen = this.el.querySelector('.screen')
-        this.track = this.el.querySelector('.track')
+        this.screen = this.el.querySelector('.vd-carousel__screen')
+        this.track = this.el.querySelector('.vd-carousel__track')
         this.slides = Array.from(this.track.querySelectorAll('.slide'))
         this.slideCount = this.slides.length
         this.slideToShowCount = 1
         this.slideToScrollCount = 1
-        this.screenWidth = this.screen.clientWidth
         this.animationId = null
         this.imgLoaded = false
         this.__display = 'block'
@@ -25,11 +26,6 @@ export default class {
         this.dragging = false
 
         this.initProps()
-
-        this.animation = this.vm.animation.setOptions({
-            speed: this.speed,
-            context: this,
-        })
 
         this.breakpoints = Object.assign({}, BREAKPOINTS, this.breakpoints)
     }
@@ -51,15 +47,13 @@ export default class {
 
     initProps() {
 
-        let props = this.vm.$props
+        let props = this.vm.$props,
+            parseIfNumber = this.vm.parseIfNumber
 
-        for (let prop in props) this[prop] = this.parseIfNumber(props[prop])
-
+        for (let prop in props) this[prop] = parseIfNumber(props[prop])
     }
 
-    parseIfNumber(value) {
-        return !isNaN(value) && typeof value !== "boolean" ? parseInt(value) : value
-    }
+
 
     setupSlideToShowAndToScroll() {
 
@@ -70,19 +64,17 @@ export default class {
             slideToScroll = this.slideToScroll,
             screenWidth = this.screenWidth = this.screen.clientWidth
 
-
         if (typeof slideToShow === 'number')
             this.slideToShowCount = slideToShow
 
         if (typeof slideToScroll === 'number')
             this.slideToScrollCount = slideToScroll
 
-        if (!typeof slideToScroll === 'number' && !typeof slideToShow === 'number')
+        if (typeof slideToScroll !== 'number' || typeof slideToShow !== 'number')
             Object.keys(this.breakpoints)
                 .sort((a, b) => a - b)
                 .forEach(breakpoint => {
                     if (screenWidth > this.breakpoints[breakpoint]) {
-
                         if (slideToShow.hasOwnProperty(breakpoint))
                             this.slideToShowCount = this.parseIfNumber(slideToShow[breakpoint])
 
@@ -103,10 +95,12 @@ export default class {
 
         // make sure to remove the existing cloned slides
         this.track.querySelectorAll('.slide.cloned').forEach(cloned => this.track.removeChild(cloned))
+        this.el.classList.remove('vd-carousel--fade')
+        this.el.classList.remove('vd-carousel--vertical')
 
         if (this.fade) {
 
-            this.el.classList.add('carousel__fade')
+            this.el.classList.add('vd-carousel--fade')
 
             this.slides.forEach((slide, index) => this.fadeOut(index))
 
@@ -114,6 +108,8 @@ export default class {
         }
 
         else {
+            if (this.vertical)
+                this.el.classList.add('vd-carousel--vertical')
 
             this.slides
                 .slice(-this.slideToShowCount)
@@ -152,38 +148,41 @@ export default class {
     }
 
     setupDimension() {
+        let Css = this.TweenMax
 
         if (this.imgLoaded) {
-            this.el.style.display = this.__display
             this.setupWidth()
-            this.setHeight(this.calculateHeight())
+            this.animate()
 
         } else {
 
             this.__display = this.el.style.display
-            this.el.style.display = 'none'
+            Css.set(this.el, {display: "none"})
 
             this.loadImages().then(() => {
+                Css.set(this.el, {display: this.__display})
                 this.imgLoaded = true
-                this.el.style.display = this.__display
-                this.imageFractions = this.getImageFractions()
                 this.setupWidth()
-                this.setHeight(this.calculateHeight())
+                this.animate()
             })
         }
+
+
     }
 
     loadImages(callback = () => null, count = this.imgs.length) {
 
         return new Promise((resolve, reject) => {
-            let i = 0,
-                _this = this
 
-            this.imgs.forEach((img) => img.onload = () => {
-                callback.call(_this, this)
-                if (++i == count) resolve(_this)
-            })
-        })
+                let i = 0,
+                    _this = this
+
+                this.imgs.forEach((img) => img.onload = () => {
+                    callback.call(_this, this)
+                    if (++i == count) resolve(_this)
+                })
+            }
+        )
 
     }
 
@@ -197,35 +196,25 @@ export default class {
 
     setupWidth() {
 
+        this.screenWidth = this.screen.clientWidth
         this.imageFractions = this.getImageFractions()
 
-        let min =  Math.min.apply(Math, this.imageFractions),
+        let min = Math.min.apply(Math, this.imageFractions),
             max = Math.max.apply(Math, this.imageFractions),
             maxH = this.screenWidth / min,
-            maxWidth = maxH * max
+            maxWidth = maxH * max,
+            width = (this.fade || this.vertical) ? this.screenWidth : maxWidth * this.slideCount
 
-
-        //the slides have same width as the carousel screen if it is vertical or fading
-        if (this.fade || this.vertical) {
-            this.allSlides.forEach((slide) => slide.style.width = this.screenWidth + 'px')
-            this.track.style.width = this.screen.clientWidth + 'px'
-        } else
-            this.track.style.width = maxWidth * this.allSlides.length + 'px'
+        this.TweenMax.set(this.track, {width})
 
     }
 
     setHeight(height) {
 
 
-        if (this.fade)
-            this.track.style.height = height + 'px'
-
-        else if (this.vertical) {
+        if (this.fade || this.vertical)
             this.screen.style.height = height + 'px'
 
-
-            this.allSlides.forEach((slide) => slide.style.height = slide.querySelector('img').offsetHeight + 'px')
-        }
 
         else
             this.allSlides.forEach((slide) => slide.style.height = height + 'px')
@@ -238,26 +227,22 @@ export default class {
 
     calculateHeight(position = this.currentSlide) {
 
-        //update the screen width (on resize)
-        this.screenWidth = this.screen.clientWidth
-
-        if (this.fade) {
+        if (this.fade)
             return this.slides[position].offsetHeight
-        }
 
-        else if (this.vertical) {
-            return this.slides
-                .slice(position, position + this.slideToShowCount)
-                .reduce((initial, slide) => initial + slide.querySelector('img').offsetHeight, 0)
-        }
+        if (this.vertical)
+            return this.allSlides
+                .slice(position + this.slideToShowCount, position + 2*this.slideToShowCount)
+                .reduce((initial, slide) => initial + slide.offsetHeight, 0)
 
-        else {
 
-            return this.screenWidth / (this.imageFractions
+        return this.screenWidth /
+            (
+                this.imageFractions
                     .slice(position + this.slideToShowCount, position + 2 * this.slideToShowCount)
                     .reduce((initial, fraction) => initial + fraction, 0)
-                )
-        }
+            )
+
     }
 
     setLeft(position) {
@@ -275,11 +260,15 @@ export default class {
 
         if (this.fade) return 0
 
-        let prop = this.vertical ? 'offsetHeight' : 'offsetWidth'
 
-        return this.allSlides
-            .slice(0, position + this.slideToShowCount)
-            .reduce((initial, slide) => initial - slide[prop], 0)
+        let offsetHW = this.vertical ? 'offsetHeight' : 'offsetWidth',
+            prop = this.vertical ? 'top' : 'left'
+
+        return {
+            [prop]: this.allSlides
+                .slice(0, position + this.slideToShowCount)
+                .reduce((initial, slide) => initial - slide[offsetHW], 0)
+        }
     }
 
     autoPlay(autoplay = this.autoplay) {
@@ -360,7 +349,8 @@ export default class {
         this.animate((to - 1) * this.slideToScrollCount)
     }
 
-    animate(position = this.currentSlide, from) {
+    animate(position = this.currentSlide) {
+
 
         if (this.animating) return
 
@@ -370,52 +360,56 @@ export default class {
 
         this.setupPagination()
 
-        this.registerHeightAnimation()
+        let height = this.calculateHeight(position),
 
-        if (this.fade)
+            onComplete = function () {
+                this.previousSlide = this.currentSlide
+                this.animating = false
+            },
 
-            if (this.calculateHeight(this.previousSlide) > this.calculateHeight(this.currentSlide))
-                this.registerFadeAnimation().animate('height').then().animate('fade')
+            onCompleteScope = this,
+            onUpdateScope = this,
 
+            onUpdate = function () {
+                this.TweenMax.set(this.track, this.calculateLeft(this.previousSlide))
+            },
+
+            currentSlide = this.slides[this.currentSlide],
+            previousSlide = this.slides[this.previousSlide]
+
+
+        if (this.fade) {
+            let Tween1 = this.TweenMax.to(currentSlide, 0.3, {opacity: 1}),
+                Tween2 = this.TweenMax.to(previousSlide, 0.3, {opacity: 0}),
+                Tween3 = this.TweenMax.to(this.track, 0.3, {height})
+
+            if (this.calculateHeight(this.previousSlide) < height)
+                this.TimelineMax.add([Tween2, Tween1]).add(Tween3)
             else
-                this.registerFadeAnimation().animate('fade').then().animate('height')
+                this.TimelineMax.add(Tween3).add([Tween2, Tween1])
+            this.TimelineMax.call(onComplete, [], this)
+        } else {
 
-        else
-            this.registerSlideAnimation(from).animate('slide').then().animate('height')
+            let Tween1 = this.vertical ?
+                this.TweenMax.to(this.screen, 0.3, {height, onUpdate, onUpdateScope}) :
+                this.TweenMax.to(this.allSlides, 0.3, {height, onUpdate, onUpdateScope});
 
+            this.TimelineMax
+                .add(Tween1)
+                .call(
+                    function (that) {
+                        that.TweenMax.to(
+                            that.track, .3, Object.assign({}, that.calculateLeft(), {onComplete, onCompleteScope})
+                        )
 
-        return this.animation.then(() => {
-            this.animating = false
-            this.previousSlide = this.currentSlide
-        }, this)
+                    }, [this])
+        }
+
 
     }
 
     getPage(value) {
         return Math.ceil(value / this.slideToScrollCount)
-    }
-
-    registerHeightAnimation() {
-
-        let easing = this.heightEasing,
-            from = this.calculateHeight(this.previousSlide),
-            to = this.calculateHeight(this.currentSlide)
-
-        return this.animation.register("height", this.setHeight).from(from).to(to).easing(easing).context(this)
-
-
-    }
-
-    registerSlideAnimation(from = this.calculateLeft(this.previousSlide),
-                           to = this.calculateLeft(this.currentSlide)) {
-
-        let during = this.constantSpeed ?
-                Math.ceil(Math.abs(to - from) / this.screenWidth) * this.slideToScrollCount * this.speed :
-                this.speed,
-
-            easing = this.slideEasing
-
-        return this.animation.then().register("slide", this.setLeft).options({from, to, easing, during}).context(this)
     }
 
     registerFadeAnimation() {

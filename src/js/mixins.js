@@ -1,12 +1,16 @@
-import Animation from './utils/animate/Animate'
-import {TweenMax, TimeLineMax} from 'gsap'
+import {TweenMax, TimelineMax} from 'gsap'
 
 export default {
     data(){
         return {
-            animation: new Animation(),
             TweenMax,
-            TimeLineMax
+            TimelineMax
+        }
+    },
+
+    methods: {
+        parseIfNumber(value) {
+            return !isNaN(value) && typeof value !== "boolean" ? parseInt(value) : value
         }
     }
 }

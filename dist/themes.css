@@ -6292,9 +6292,6 @@ i.vd-icon {
   transform-origin: 50% 25%;
   transform: rotate(180deg);
 }
-.carousel__fade .slide {
-  position: absolute;
-}
 .vd-navbar {
   width: 100%;
   font-family: Aharoni;
