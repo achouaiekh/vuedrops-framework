@@ -121,6 +121,7 @@
         .slide
             position absolute
     .vd-carousel__track
+        cursor pointer
         display: block
         position: relative
         top: 0

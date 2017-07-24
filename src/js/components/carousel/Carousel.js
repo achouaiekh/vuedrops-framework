@@ -54,7 +54,6 @@ export default class {
     }
 
 
-
     setupSlideToShowAndToScroll() {
 
         if (this.fade)
@@ -102,14 +101,12 @@ export default class {
 
             this.el.classList.add('vd-carousel--fade')
 
-            this.slides.forEach((slide, index) => this.fadeOut(index))
-
-            this.fadeIn()
+            this.TweenMax.set(this.slides, {opacity: 0, zIndex: this.zIndex + 1})
         }
 
         else {
-            if (this.vertical)
-                this.el.classList.add('vd-carousel--vertical')
+
+            if (this.vertical) this.el.classList.add('vd-carousel--vertical')
 
             this.slides
                 .slice(-this.slideToShowCount)
@@ -137,16 +134,6 @@ export default class {
 
     }
 
-    fadeIn(position = this.currentSlide, opacity = 1) {
-        this.slides[position].style.opacity = opacity
-        this.slides[position].style.zIndex = this.zIndex + 2
-    }
-
-    fadeOut(position = this.previousSlide, opacity = 0) {
-        this.slides[position].style.opacity = opacity
-        this.slides[position].style.zIndex = this.zIndex + 1
-    }
-
     setupDimension() {
         let Css = this.TweenMax
 
@@ -166,8 +153,6 @@ export default class {
                 this.animate()
             })
         }
-
-
     }
 
     loadImages(callback = () => null, count = this.imgs.length) {
@@ -186,43 +171,17 @@ export default class {
 
     }
 
-
-    getImageFractions() {
-        return this.allSlides.map((slide) => {
-            let img = slide.querySelector('img')
-            return img.clientWidth / img.clientHeight
-        })
-    }
-
     setupWidth() {
 
-        this.screenWidth = this.screen.clientWidth
-        this.imageFractions = this.getImageFractions()
+        this.imageFractions = this.imgs.map(img => img.clientWidth / img.clientHeight)
 
-        let min = Math.min.apply(Math, this.imageFractions),
+        let screenWidth = this.screenWidth = this.screen.clientWidth,
+            min = Math.min.apply(Math, this.imageFractions),
             max = Math.max.apply(Math, this.imageFractions),
-            maxH = this.screenWidth / min,
-            maxWidth = maxH * max,
-            width = (this.fade || this.vertical) ? this.screenWidth : maxWidth * this.slideCount
+            maxWidth = screenWidth * max / min,
+            width = (this.fade || this.vertical) ? screenWidth : maxWidth * this.slideCount
 
         this.TweenMax.set(this.track, {width})
-
-    }
-
-    setHeight(height) {
-
-
-        if (this.fade || this.vertical)
-            this.screen.style.height = height + 'px'
-
-
-        else
-            this.allSlides.forEach((slide) => slide.style.height = height + 'px')
-
-
-        this.setLeft(this.calculateLeft(this.currentSlide))
-
-        return this
     }
 
     calculateHeight(position = this.currentSlide) {
@@ -232,7 +191,7 @@ export default class {
 
         if (this.vertical)
             return this.allSlides
-                .slice(position + this.slideToShowCount, position + 2*this.slideToShowCount)
+                .slice(position + this.slideToShowCount, position + 2 * this.slideToShowCount)
                 .reduce((initial, slide) => initial + slide.offsetHeight, 0)
 
 
@@ -242,24 +201,12 @@ export default class {
                     .slice(position + this.slideToShowCount, position + 2 * this.slideToShowCount)
                     .reduce((initial, fraction) => initial + fraction, 0)
             )
-
     }
 
-    setLeft(position) {
-
-        let prop = this.vertical ? 'top' : 'left'
-
-        this.track.style[prop] = position + 'px'
-
-        this.offsetLeft = position
-
-        return this
-    }
 
     calculateLeft(position = this.currentSlide) {
 
         if (this.fade) return 0
-
 
         let offsetHW = this.vertical ? 'offsetHeight' : 'offsetWidth',
             prop = this.vertical ? 'top' : 'left'
@@ -281,36 +228,26 @@ export default class {
             this.animationId = setInterval(() => _this.next(), this.autoplayDelay)
     }
 
-    setFade(opacity) {
-
-        this.fadeOut(this.previousSlide, 1 - opacity)
-        this.fadeIn(this.currentSlide, opacity)
-    }
-
-
     next() {
 
         if (this.animating) return
 
-        this.currentSlide += this.slideToScrollCount
-
-        this.rectifyNext()
+        this.getNextSlide()
 
         this.animate()
     }
 
-    rectifyNext() {
+    getNextSlide() {
 
         let lastIndex = this.slideCount - 1
+
+        this.currentSlide += this.slideToScrollCount
 
         if (this.currentSlide > lastIndex) {
 
             this.currentSlide = 0
 
-            if (!this.fade) {
-                this.previousSlide = this.slideToScrollCount == 1 ?
-                    -1 : -(lastIndex % this.slideToScrollCount) - 1
-            }
+            if (!this.fade) this.previousSlide = this.slideToScrollCount === 1 ? -1 : (-1)(lastIndex % this.slideToScrollCount) - 1
         }
     }
 
@@ -318,14 +255,14 @@ export default class {
 
         if (this.animating) return
 
-        this.currentSlide -= this.slideToScrollCount
-
-        this.rectifyPrevious()
+        this.getPreviousSlide()
 
         this.animate()
     }
 
-    rectifyPrevious() {
+    getPreviousSlide() {
+
+        this.currentSlide -= this.slideToScrollCount
 
         if (this.currentSlide < 0) {
 
@@ -333,15 +270,10 @@ export default class {
 
             if (!this.fade) {
                 this.previousSlide = this.slideCount
-                this.currentSlide = this.slideCount - 1 - this.calculateOffset()
+                this.currentSlide =
+                    (this.slideCount - 1) - (this.slideToScrollCount === 1 ? 0 : (this.slideCount - 1) % this.slideToScrollCount)
             }
-
-
         }
-    }
-
-    calculateOffset() {
-        return this.slideToScrollCount === 1 ? 0 : (this.slideCount - 1) % this.slideToScrollCount
     }
 
     goto(to) {
@@ -350,7 +282,6 @@ export default class {
     }
 
     animate(position = this.currentSlide) {
-
 
         if (this.animating) return
 
@@ -367,42 +298,40 @@ export default class {
                 this.animating = false
             },
 
-            onCompleteScope = this,
-            onUpdateScope = this,
-
             onUpdate = function () {
-                this.TweenMax.set(this.track, this.calculateLeft(this.previousSlide))
+                this.TweenMax.set(this.track, this.calculateLeft())
             },
 
-            currentSlide = this.slides[this.currentSlide],
-            previousSlide = this.slides[this.previousSlide]
+            [onCompleteScope, onUpdateScope] = [this, this],
+
+            [currentSlide, previousSlide] = [this.slides[this.currentSlide], this.slides[this.previousSlide]],
+
+            [TweenMax, TimelineMax] = [this.TweenMax, this.TimelineMax]
 
 
         if (this.fade) {
-            let Tween1 = this.TweenMax.to(currentSlide, 0.3, {opacity: 1}),
-                Tween2 = this.TweenMax.to(previousSlide, 0.3, {opacity: 0}),
-                Tween3 = this.TweenMax.to(this.track, 0.3, {height})
+
+            let Tween1 = TweenMax.to(currentSlide, 0.3, {opacity: 1, zIndex: this.zIndex + 2}),
+                Tween2 = TweenMax.to(previousSlide, 0.3, {opacity: 0, zIndex: this.zIndex + 1}),
+                Tween3 = TweenMax.to(this.track, 0.3, {height})
 
             if (this.calculateHeight(this.previousSlide) < height)
-                this.TimelineMax.add([Tween2, Tween1]).add(Tween3)
+                TimelineMax.add([Tween2, Tween1]).add(Tween3)
             else
-                this.TimelineMax.add(Tween3).add([Tween2, Tween1])
-            this.TimelineMax.call(onComplete, [], this)
+                TimelineMax.add(Tween3).add([Tween2, Tween1])
+
+            TimelineMax.call(onComplete, [], this)
+
         } else {
 
             let Tween1 = this.vertical ?
-                this.TweenMax.to(this.screen, 0.3, {height, onUpdate, onUpdateScope}) :
-                this.TweenMax.to(this.allSlides, 0.3, {height, onUpdate, onUpdateScope});
+                TweenMax.to(this.screen, 0.3, {height, onUpdate, onUpdateScope, onCompleteScope, onComplete}) :
+                TweenMax.to(this.allSlides, 0.3, {height, onUpdate, onUpdateScope, onCompleteScope, onComplete}),
+                tween2 = TweenMax.to(this.track, .3, this.calculateLeft())
 
-            this.TimelineMax
+            TimelineMax.add(tween2)
                 .add(Tween1)
-                .call(
-                    function (that) {
-                        that.TweenMax.to(
-                            that.track, .3, Object.assign({}, that.calculateLeft(), {onComplete, onCompleteScope})
-                        )
 
-                    }, [this])
         }
 
 
@@ -410,11 +339,6 @@ export default class {
 
     getPage(value) {
         return Math.ceil(value / this.slideToScrollCount)
-    }
-
-    registerFadeAnimation() {
-
-        return this.animation.then().register("fade", this.setFade).from(0).to(1).easing(this.fadeEasing).context(this)
     }
 
     setupPagination() {
@@ -439,16 +363,18 @@ export default class {
 
     initEvents(remove = false) {
 
-        this.pagination.$on('previousPage', this.proxy(this.previous))
-        this.pagination.$on('nextPage', this.proxy(this.next))
-        this.pagination.$on('gotoPage', this.proxy(this.goto))
+        let proxy = this.vm.proxy
+
+        this.pagination.$on('previousPage', proxy(this.previous, this))
+        this.pagination.$on('nextPage', proxy(this.next, this))
+        this.pagination.$on('gotoPage', proxy(this.goto, this))
 
         const eventListener = remove ? 'removeEventListener' : 'addEventListener'
 
         "mousedown touchstart mousemove touchmove mouseup touchend mouseleave touchcancel dblclick".split(" ")
-            .forEach((eventType) => this.track[eventListener](eventType, this.proxy(this.swipeHandler)))
+            .forEach((eventType) => this.track[eventListener](eventType, proxy(this.swipeHandler, this)))
 
-        window[eventListener]('resize', this.proxy(this.setup))
+        window[eventListener]('resize', proxy(this.setup, this))
     }
 
 
@@ -491,8 +417,6 @@ export default class {
 
         if (this.dragging) return false
 
-        this.track.style.cursor = "-webkit-grab"
-
         this.dragging = true
 
         let touches = event.changedTouches && event.changedTouches[0]
@@ -501,18 +425,11 @@ export default class {
         this.touch.startY = this.touch.curY = touches !== undefined ? touches.pageY : event.clientY
 
         this.touch.swipeLength = 0
-
-        this.touch.originLeft = this.calculateLeft(this.previousSlide)
-
-        this.setLeft(this.touch.originLeft)
-
     }
 
     swipeMove(event) {
 
         if (!this.dragging) return false
-
-        this.track.style.cursor = '-webkit-grabbing'
 
         let touches = event.changedTouches && event.changedTouches[0]
 
@@ -523,58 +440,16 @@ export default class {
             this.touch.curY - this.touch.startY :
             this.touch.curX - this.touch.startX
 
-        let left0 = this.calculateLeft(0),
-            leftlast = this.calculateLeft((Math.ceil(this.slides.length / this.slideToScrollCount) - 1) * this.slideToScrollCount)
-
-        this.touch.offsetLeft = this.touch.originLeft + this.touch.swipeLength
-
-        if (this.touch.offsetLeft > left0) this.touch.offsetLeft = left0
-        if (this.touch.offsetLeft < leftlast) this.touch.offsetLeft = leftlast
-
-        this.setLeft(this.touch.offsetLeft)
+        if (Math.abs(this.touch.swipeLength) >= this.minSwipeDistance) {
+            this.dragging = false
+            if (this.touch.swipeLength > 0) this.previous()
+            else this.next()
+        }
     }
 
     swipeEnd(event) {
-
-        if (!this.dragging) return false
-
         this.dragging = false
-
-        this.track.style.cursor = "default"
-
-        let offsetLeft = this.touch.offsetLeft
-
-        if (Math.abs(this.touch.swipeLength) < this.minSwipeDistance)
-            this.animate(this.previousSlide, offsetLeft)
-
-        else {
-
-            let direction = this.touch.direction = Math.sign(this.touch.swipeLength),
-                i = 0
-
-
-            while (++i) {
-
-                let position = this.calculateLeft(this.currentSlide)
-                if (direction * (position - offsetLeft) >= 0 || i > this.slideCount) break
-                this.currentSlide -= direction * this.slideToScrollCount
-            }
-
-            this.animate(this.currentSlide, offsetLeft)
-
-
-        }
-
     }
-
-    proxy(fn, object = this) {
-
-        return function () {
-            return fn.apply(object, arguments)
-        }
-    }
-
-
 }
 
 const BREAKPOINTS = {

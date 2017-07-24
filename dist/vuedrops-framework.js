@@ -431,6 +431,14 @@ function applyToTag (styleElement, obj) {
     methods: {
         parseIfNumber: function parseIfNumber(value) {
             return !isNaN(value) && typeof value !== "boolean" ? parseInt(value) : value;
+        },
+        proxy: function proxy(fn) {
+            var object = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this;
+
+
+            return function () {
+                return fn.apply(object, arguments);
+            };
         }
     }
 });
@@ -1116,12 +1124,9 @@ var _class = function () {
 
                 this.el.classList.add('vd-carousel--fade');
 
-                this.slides.forEach(function (slide, index) {
-                    return _this3.fadeOut(index);
-                });
-
-                this.fadeIn();
+                this.TweenMax.set(this.slides, { opacity: 0, zIndex: this.zIndex + 1 });
             } else {
+
                 if (this.vertical) this.el.classList.add('vd-carousel--vertical');
 
                 this.slides.slice(-this.slideToShowCount).reverse().forEach(function (slice) {
@@ -1142,24 +1147,6 @@ var _class = function () {
 
             //select all image (cloned and original)
             this.imgs = Array.from(this.track.querySelectorAll('.slide img'));
-        }
-    }, {
-        key: 'fadeIn',
-        value: function fadeIn() {
-            var position = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.currentSlide;
-            var opacity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-            this.slides[position].style.opacity = opacity;
-            this.slides[position].style.zIndex = this.zIndex + 2;
-        }
-    }, {
-        key: 'fadeOut',
-        value: function fadeOut() {
-            var position = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.previousSlide;
-            var opacity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-
-            this.slides[position].style.opacity = opacity;
-            this.slides[position].style.zIndex = this.zIndex + 1;
         }
     }, {
         key: 'setupDimension',
@@ -1209,39 +1196,20 @@ var _class = function () {
             });
         }
     }, {
-        key: 'getImageFractions',
-        value: function getImageFractions() {
-            return this.allSlides.map(function (slide) {
-                var img = slide.querySelector('img');
-                return img.clientWidth / img.clientHeight;
-            });
-        }
-    }, {
         key: 'setupWidth',
         value: function setupWidth() {
 
-            this.screenWidth = this.screen.clientWidth;
-            this.imageFractions = this.getImageFractions();
-
-            var min = Math.min.apply(Math, this.imageFractions),
-                max = Math.max.apply(Math, this.imageFractions),
-                maxH = this.screenWidth / min,
-                maxWidth = maxH * max,
-                width = this.fade || this.vertical ? this.screenWidth : maxWidth * this.slideCount;
-
-            this.TweenMax.set(this.track, { width: width });
-        }
-    }, {
-        key: 'setHeight',
-        value: function setHeight(height) {
-
-            if (this.fade || this.vertical) this.screen.style.height = height + 'px';else this.allSlides.forEach(function (slide) {
-                return slide.style.height = height + 'px';
+            this.imageFractions = this.imgs.map(function (img) {
+                return img.clientWidth / img.clientHeight;
             });
 
-            this.setLeft(this.calculateLeft(this.currentSlide));
+            var screenWidth = this.screenWidth = this.screen.clientWidth,
+                min = Math.min.apply(Math, this.imageFractions),
+                max = Math.max.apply(Math, this.imageFractions),
+                maxWidth = screenWidth * max / min,
+                width = this.fade || this.vertical ? screenWidth : maxWidth * this.slideCount;
 
-            return this;
+            this.TweenMax.set(this.track, { width: width });
         }
     }, {
         key: 'calculateHeight',
@@ -1258,18 +1226,6 @@ var _class = function () {
             return this.screenWidth / this.imageFractions.slice(position + this.slideToShowCount, position + 2 * this.slideToShowCount).reduce(function (initial, fraction) {
                 return initial + fraction;
             }, 0);
-        }
-    }, {
-        key: 'setLeft',
-        value: function setLeft(position) {
-
-            var prop = this.vertical ? 'top' : 'left';
-
-            this.track.style[prop] = position + 'px';
-
-            this.offsetLeft = position;
-
-            return this;
         }
     }, {
         key: 'calculateLeft',
@@ -1301,37 +1257,28 @@ var _class = function () {
             }, this.autoplayDelay);
         }
     }, {
-        key: 'setFade',
-        value: function setFade(opacity) {
-
-            this.fadeOut(this.previousSlide, 1 - opacity);
-            this.fadeIn(this.currentSlide, opacity);
-        }
-    }, {
         key: 'next',
         value: function next() {
 
             if (this.animating) return;
 
-            this.currentSlide += this.slideToScrollCount;
-
-            this.rectifyNext();
+            this.getNextSlide();
 
             this.animate();
         }
     }, {
-        key: 'rectifyNext',
-        value: function rectifyNext() {
+        key: 'getNextSlide',
+        value: function getNextSlide() {
 
             var lastIndex = this.slideCount - 1;
+
+            this.currentSlide += this.slideToScrollCount;
 
             if (this.currentSlide > lastIndex) {
 
                 this.currentSlide = 0;
 
-                if (!this.fade) {
-                    this.previousSlide = this.slideToScrollCount == 1 ? -1 : -(lastIndex % this.slideToScrollCount) - 1;
-                }
+                if (!this.fade) this.previousSlide = this.slideToScrollCount === 1 ? -1 : (-1)(lastIndex % this.slideToScrollCount) - 1;
             }
         }
     }, {
@@ -1340,15 +1287,15 @@ var _class = function () {
 
             if (this.animating) return;
 
-            this.currentSlide -= this.slideToScrollCount;
-
-            this.rectifyPrevious();
+            this.getPreviousSlide();
 
             this.animate();
         }
     }, {
-        key: 'rectifyPrevious',
-        value: function rectifyPrevious() {
+        key: 'getPreviousSlide',
+        value: function getPreviousSlide() {
+
+            this.currentSlide -= this.slideToScrollCount;
 
             if (this.currentSlide < 0) {
 
@@ -1356,14 +1303,9 @@ var _class = function () {
 
                 if (!this.fade) {
                     this.previousSlide = this.slideCount;
-                    this.currentSlide = this.slideCount - 1 - this.calculateOffset();
+                    this.currentSlide = this.slideCount - 1 - (this.slideToScrollCount === 1 ? 0 : (this.slideCount - 1) % this.slideToScrollCount);
                 }
             }
-        }
-    }, {
-        key: 'calculateOffset',
-        value: function calculateOffset() {
-            return this.slideToScrollCount === 1 ? 0 : (this.slideCount - 1) % this.slideToScrollCount;
         }
     }, {
         key: 'goto',
@@ -1390,40 +1332,39 @@ var _class = function () {
                 this.previousSlide = this.currentSlide;
                 this.animating = false;
             },
+                onUpdate = function onUpdate() {
+                this.TweenMax.set(this.track, this.calculateLeft());
+            },
                 onCompleteScope = this,
                 onUpdateScope = this,
-                onUpdate = function onUpdate() {
-                this.TweenMax.set(this.track, this.calculateLeft(this.previousSlide));
-            },
-                currentSlide = this.slides[this.currentSlide],
-                previousSlide = this.slides[this.previousSlide];
+                _ref2 = [this.slides[this.currentSlide], this.slides[this.previousSlide]],
+                currentSlide = _ref2[0],
+                previousSlide = _ref2[1],
+                _ref3 = [this.TweenMax, this.TimelineMax],
+                TweenMax = _ref3[0],
+                TimelineMax = _ref3[1];
 
             if (this.fade) {
-                var Tween1 = this.TweenMax.to(currentSlide, 0.3, { opacity: 1 }),
-                    Tween2 = this.TweenMax.to(previousSlide, 0.3, { opacity: 0 }),
-                    Tween3 = this.TweenMax.to(this.track, 0.3, { height: height });
 
-                if (this.calculateHeight(this.previousSlide) < height) this.TimelineMax.add([Tween2, Tween1]).add(Tween3);else this.TimelineMax.add(Tween3).add([Tween2, Tween1]);
-                this.TimelineMax.call(onComplete, [], this);
+                var Tween1 = TweenMax.to(currentSlide, 0.3, { opacity: 1, zIndex: this.zIndex + 2 }),
+                    Tween2 = TweenMax.to(previousSlide, 0.3, { opacity: 0, zIndex: this.zIndex + 1 }),
+                    Tween3 = TweenMax.to(this.track, 0.3, { height: height });
+
+                if (this.calculateHeight(this.previousSlide) < height) TimelineMax.add([Tween2, Tween1]).add(Tween3);else TimelineMax.add(Tween3).add([Tween2, Tween1]);
+
+                TimelineMax.call(onComplete, [], this);
             } else {
 
-                var _Tween = this.vertical ? this.TweenMax.to(this.screen, 0.3, { height: height, onUpdate: onUpdate, onUpdateScope: onUpdateScope }) : this.TweenMax.to(this.allSlides, 0.3, { height: height, onUpdate: onUpdate, onUpdateScope: onUpdateScope });
+                var _Tween = this.vertical ? TweenMax.to(this.screen, 0.3, { height: height, onUpdate: onUpdate, onUpdateScope: onUpdateScope, onCompleteScope: onCompleteScope, onComplete: onComplete }) : TweenMax.to(this.allSlides, 0.3, { height: height, onUpdate: onUpdate, onUpdateScope: onUpdateScope, onCompleteScope: onCompleteScope, onComplete: onComplete }),
+                    tween2 = TweenMax.to(this.track, .3, this.calculateLeft());
 
-                this.TimelineMax.add(_Tween).call(function (that) {
-                    that.TweenMax.to(that.track, .3, Object.assign({}, that.calculateLeft(), { onComplete: onComplete, onCompleteScope: onCompleteScope }));
-                }, [this]);
+                TimelineMax.add(tween2).add(_Tween);
             }
         }
     }, {
         key: 'getPage',
         value: function getPage(value) {
             return Math.ceil(value / this.slideToScrollCount);
-        }
-    }, {
-        key: 'registerFadeAnimation',
-        value: function registerFadeAnimation() {
-
-            return this.animation.then().register("fade", this.setFade).from(0).to(1).easing(this.fadeEasing).context(this);
         }
     }, {
         key: 'setupPagination',
@@ -1455,17 +1396,19 @@ var _class = function () {
             var remove = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
 
-            this.pagination.$on('previousPage', this.proxy(this.previous));
-            this.pagination.$on('nextPage', this.proxy(this.next));
-            this.pagination.$on('gotoPage', this.proxy(this.goto));
+            var proxy = this.vm.proxy;
+
+            this.pagination.$on('previousPage', proxy(this.previous, this));
+            this.pagination.$on('nextPage', proxy(this.next, this));
+            this.pagination.$on('gotoPage', proxy(this.goto, this));
 
             var eventListener = remove ? 'removeEventListener' : 'addEventListener';
 
             "mousedown touchstart mousemove touchmove mouseup touchend mouseleave touchcancel dblclick".split(" ").forEach(function (eventType) {
-                return _this6.track[eventListener](eventType, _this6.proxy(_this6.swipeHandler));
+                return _this6.track[eventListener](eventType, proxy(_this6.swipeHandler, _this6));
             });
 
-            window[eventListener]('resize', this.proxy(this.setup));
+            window[eventListener]('resize', proxy(this.setup, this));
         }
     }, {
         key: 'swipeHandler',
@@ -1507,8 +1450,6 @@ var _class = function () {
 
             if (this.dragging) return false;
 
-            this.track.style.cursor = "-webkit-grab";
-
             this.dragging = true;
 
             var touches = event.changedTouches && event.changedTouches[0];
@@ -1517,18 +1458,12 @@ var _class = function () {
             this.touch.startY = this.touch.curY = touches !== undefined ? touches.pageY : event.clientY;
 
             this.touch.swipeLength = 0;
-
-            this.touch.originLeft = this.calculateLeft(this.previousSlide);
-
-            this.setLeft(this.touch.originLeft);
         }
     }, {
         key: 'swipeMove',
         value: function swipeMove(event) {
 
             if (!this.dragging) return false;
-
-            this.track.style.cursor = '-webkit-grabbing';
 
             var touches = event.changedTouches && event.changedTouches[0];
 
@@ -1537,52 +1472,15 @@ var _class = function () {
 
             this.touch.swipeLength = this.vertical ? this.touch.curY - this.touch.startY : this.touch.curX - this.touch.startX;
 
-            var left0 = this.calculateLeft(0),
-                leftlast = this.calculateLeft((Math.ceil(this.slides.length / this.slideToScrollCount) - 1) * this.slideToScrollCount);
-
-            this.touch.offsetLeft = this.touch.originLeft + this.touch.swipeLength;
-
-            if (this.touch.offsetLeft > left0) this.touch.offsetLeft = left0;
-            if (this.touch.offsetLeft < leftlast) this.touch.offsetLeft = leftlast;
-
-            this.setLeft(this.touch.offsetLeft);
+            if (Math.abs(this.touch.swipeLength) >= this.minSwipeDistance) {
+                this.dragging = false;
+                if (this.touch.swipeLength > 0) this.previous();else this.next();
+            }
         }
     }, {
         key: 'swipeEnd',
         value: function swipeEnd(event) {
-
-            if (!this.dragging) return false;
-
             this.dragging = false;
-
-            this.track.style.cursor = "default";
-
-            var offsetLeft = this.touch.offsetLeft;
-
-            if (Math.abs(this.touch.swipeLength) < this.minSwipeDistance) this.animate(this.previousSlide, offsetLeft);else {
-
-                var direction = this.touch.direction = Math.sign(this.touch.swipeLength),
-                    i = 0;
-
-                while (++i) {
-
-                    var position = this.calculateLeft(this.currentSlide);
-                    if (direction * (position - offsetLeft) >= 0 || i > this.slideCount) break;
-                    this.currentSlide -= direction * this.slideToScrollCount;
-                }
-
-                this.animate(this.currentSlide, offsetLeft);
-            }
-        }
-    }, {
-        key: 'proxy',
-        value: function proxy(fn) {
-            var object = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this;
-
-
-            return function () {
-                return fn.apply(object, arguments);
-            };
         }
     }]);
 
@@ -1746,7 +1644,7 @@ exports = module.exports = __webpack_require__(1)();
 
 
 // module
-exports.push([module.i, "\n.vd-carousel {\n  outline: none;\n  position: relative;\n  display: block;\n  max-width: 100%;\n}\n.vd-carousel .vd-carousel__screen {\n  overflow: hidden;\n  position: relative;\n  display: block;\n  width: 100%;\n}\n.vd-carousel .slide {\n  box-sizing: border-box;\n  padding: 0.1em;\n}\n.vd-carousel .slide img {\n  height: 100%;\n  width: auto;\n}\n.vd-carousel--fade .slide,\n.vd-carousel--vertical .slide {\n  width: 100%;\n}\n.vd-carousel--fade .slide img,\n.vd-carousel--vertical .slide img {\n  height: auto;\n  width: 100%;\n}\n.vd-carousel--fade .slide {\n  position: absolute;\n}\n.vd-carousel__track {\n  display: block;\n  position: relative;\n  top: 0;\n  left: 0;\n}\n.vd-carousel__track.grab {\n  cursor: grab;\n}\n.vd-carousel__track.grabbing {\n  cursor: grabbing;\n}\n.vd-carousel__navigation {\n  display: flex;\n  justify-content: center;\n}\n.vd-carousel__navigation .nav {\n  text-decoration: none;\n  color: #ff7f50;\n}\n.vd-carousel__navigation .nav:hover,\n.vd-carousel__navigation .nav:focus {\n  color: #6495ed;\n}\n", ""]);
+exports.push([module.i, "\n.vd-carousel {\n  outline: none;\n  position: relative;\n  display: block;\n  max-width: 100%;\n}\n.vd-carousel .vd-carousel__screen {\n  overflow: hidden;\n  position: relative;\n  display: block;\n  width: 100%;\n}\n.vd-carousel .slide {\n  box-sizing: border-box;\n  padding: 0.1em;\n}\n.vd-carousel .slide img {\n  height: 100%;\n  width: auto;\n}\n.vd-carousel--fade .slide,\n.vd-carousel--vertical .slide {\n  width: 100%;\n}\n.vd-carousel--fade .slide img,\n.vd-carousel--vertical .slide img {\n  height: auto;\n  width: 100%;\n}\n.vd-carousel--fade .slide {\n  position: absolute;\n}\n.vd-carousel__track {\n  cursor: pointer;\n  display: block;\n  position: relative;\n  top: 0;\n  left: 0;\n}\n.vd-carousel__track.grab {\n  cursor: grab;\n}\n.vd-carousel__track.grabbing {\n  cursor: grabbing;\n}\n.vd-carousel__navigation {\n  display: flex;\n  justify-content: center;\n}\n.vd-carousel__navigation .nav {\n  text-decoration: none;\n  color: #ff7f50;\n}\n.vd-carousel__navigation .nav:hover,\n.vd-carousel__navigation .nav:focus {\n  color: #6495ed;\n}\n", ""]);
 
 // exports
 
